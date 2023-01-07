@@ -1,0 +1,16 @@
+
+
+        if not relevant_columns:
+            self.relevant_columns = [
+                "Title",
+                "Author",
+                "Date",
+                "Pages",
+                "Last Edition",
+                "Owned",
+                "Status",
+                "Date Started",
+                "Date Finished",
+                "Days Read",
+                "Pages per Day",
+            ]
