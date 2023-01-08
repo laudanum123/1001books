@@ -1,16 +1,25 @@
+relevant_columns : 
+- Title
+- Author
+- Date
+- Pages
+- Last Edition
+- Owned
+- Status
+- Date Started
+- Date Finished
+- Days Read
+- Pages per Day
 
-
-        if not relevant_columns:
-            self.relevant_columns = [
-                "Title",
-                "Author",
-                "Date",
-                "Pages",
-                "Last Edition",
-                "Owned",
-                "Status",
-                "Date Started",
-                "Date Finished",
-                "Days Read",
-                "Pages per Day",
-            ]
+column_dtypes:
+  Title: str
+  Author: str
+  Date: str
+  Pages: int
+  Last Edition: int
+  Owned: str
+  Status: str
+  Date Started: date
+  Date Finished: date
+  Days Read: float
+  Pages per Day: float

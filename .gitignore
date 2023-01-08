@@ -1,2 +1,5 @@
 .envrc
+test.db
+__pycache__/
+*.pyc
 

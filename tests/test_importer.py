@@ -4,7 +4,6 @@ import unittest.mock as mock
 import pandas as pd
 from io import BytesIO
 from src.importer import Importer
-import sqlite3
 
 
 @mock.patch.object(Importer, "read_config_file", return_value=dict({"test": "test"}))
@@ -12,6 +11,7 @@ def test_importer_init(mock_read_config_file):
     # Test the init function
     test_importer = Importer()
 
+    assert mock_read_config_file.called
     assert test_importer is not None
 
 

@@ -27,8 +27,8 @@ class Importer:
         self.data = self.data[relevant_columns]
         return self.data
 
-    def write_to_sqlite(self):
-        self.data.to_sql("books", con=sqlite3.connect("test.db"), if_exists="replace")
+    def write_to_sqlite(self, db_name: str) -> None:
+        self.data.to_sql("books", con=sqlite3.connect(db_name), if_exists="replace")
         return self.data
 
     def convert_column_dtypes(self, column_dtypes: dict) -> pd.DataFrame:
@@ -49,8 +49,9 @@ class Importer:
                 "datetime",
                 "timedelta",
             ):
-                
-                column_dtypes[column_dtype[0]] = "datetime64" # Make sure the desired dtype is datetime64
+                column_dtypes[
+                    column_dtype[0]
+                ] = "datetime64"  # Make sure the desired dtype is datetime64
                 try:
                     pd.to_datetime(self.data[column_dtype[0]])
                 except ValueError:
@@ -58,9 +59,9 @@ class Importer:
                     print(
                         "Trying to convert to datetime64 compatible format automatically"
                     )
-                    self.data[
+                    self.data[column_dtype[0]] = self.convert_dates_to_correct_format(
                         column_dtype[0]
-                    ] = self.convert_dates_to_correct_format(column_dtype[0])
+                    )
 
         # Convert the dtypes to the specified dtypes
         self.data = self.data.astype(column_dtypes)
@@ -75,8 +76,3 @@ class Importer:
                 f"Could not convert {column} to datetime64 compatible format"
             )
         return parsed_column
-
-    # Result should look the following:
-    # Columns: Title, Author, Date, Pages, Last Edition, Owned, Status, Date Started,
-    # Date Finished, Days Read, Pages per Day
-    # calculated values for the following columns: Days Read, Pages per Day
