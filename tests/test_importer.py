@@ -6,12 +6,10 @@ from io import BytesIO
 from src.importer import Importer
 
 
-@mock.patch.object(Importer, "read_config_file", return_value=dict({"test": "test"}))
-def test_importer_init(mock_read_config_file):
+def test_importer_init():
     # Test the init function
     test_importer = Importer()
 
-    assert mock_read_config_file.called
     assert test_importer is not None
 
 
@@ -74,7 +72,7 @@ def test_write_to_sqlite(mock_to_sql):
     # Test the write_to_sqlite function
     test_importer = Importer()
     test_importer.data = pd.DataFrame(columns=["foo", "bar", "baz"])
-    test_importer.write_to_sqlite()
+    test_importer.write_to_sqlite("test.db")
     assert mock_to_sql.called_once()
 
 
