@@ -1,8 +1,12 @@
 # Tests the importer class
 
-import unittest.mock as mock
-import pandas as pd
 from io import BytesIO
+import unittest.mock as mock
+
+import pandas as pd
+import pytest
+import yaml
+
 from src.importer import Importer
 
 
@@ -67,6 +71,16 @@ def test_read_config_file(mock_yaml):
     )
 
 
+@mock.patch("builtins.open", mock.mock_open(read_data="data"))
+def test_read_config_file_yaml_error():
+    # Test the read_config_file function with a yaml error
+    test_importer = Importer()
+    with mock.patch("yaml.safe_load", side_effect=yaml.YAMLError) as exc_info:
+        return_value = test_importer.read_config_file("path/to/config/file")
+        assert exc_info.called
+        assert return_value is False
+
+
 @mock.patch("pandas.DataFrame.to_sql")
 def test_write_to_sqlite(mock_to_sql):
     # Test the write_to_sqlite function
@@ -98,3 +112,39 @@ def test_convert_column_dtypes_with_dates():
     assert result.dtypes.equals(
         pd.Series({"foo": "datetime64[ns]", "bar": "datetime64[ns]", "baz": "float64"})
     )
+
+
+def test_convert_column_dtypes_non_existing_column():
+    # Test the convert_column_dtypes function with a non existing column
+    test_importer = Importer()
+    test_importer.data = pd.DataFrame(columns=["foo", "bar", "baz"])
+    with pytest.raises(Exception):
+        test_importer.convert_column_dtypes(
+            column_dtypes={"foo": "int", "bar": "str", "baz": "float", "qux": "int"}
+        )
+        assert False
+
+def test_convert_column_dtypes_wrong_date_format():
+    # Test the convert_column_dtypes function with a wrong date format
+    test_importer = Importer()
+    test_importer.data = pd.DataFrame({"foo": ["thisisnotadate"]})
+    with mock.patch.object(Importer, 'convert_dates_to_correct_format'):
+        with pytest.raises(ValueError):
+            test_importer.convert_column_dtypes(
+                column_dtypes={"foo": "date"}
+            )
+            assert False
+
+def test_convert_dates_to_correct_format():
+    # Test the convert_columns_to_correct_format function
+    test_importer = Importer()
+    test_importer.data = pd.DataFrame({"foo": ["2022-12-01"]})
+    test_importer.convert_dates_to_correct_format("foo")
+    assert test_importer.data.dtypes.equals(pd.Series({"foo": "datetime64[ns]"}))
+
+def test_convert_dates_to_correct_format_with_wrong_format():
+    # Test the convert_columns_to_correct_format function with a wrong format
+    test_importer = Importer()
+    test_importer.data = pd.DataFrame({"foo": ["thisisnotadate"]})
+    with mock.patch('pandas.DataFrame.apply', side_effect=pd.errors.ParserError):
+        test_importer.convert_dates_to_correct_format("foo") == False

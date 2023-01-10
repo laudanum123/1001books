@@ -17,6 +17,7 @@ class Importer:
                 self.config = yaml.safe_load(stream)
             except yaml.YAMLError as exc:
                 print(exc)
+                return False
         return self.config
 
     def import_original_list(self) -> pd.DataFrame:
@@ -67,12 +68,11 @@ class Importer:
         self.data = self.data.astype(column_dtypes)
         return self.data
 
-    def convert_dates_to_correct_format(self, column: object) -> pd.Series:
+    def convert_dates_to_correct_format(self, column: str) -> pd.Series:
         """Converts the dates in the column to the correct format"""
         try:
-            parsed_column = parse(column, fuzzy=True)
-        except ValueError:
-            raise Exception(
-                f"Could not convert {column} to datetime64 compatible format"
-            )
-        return parsed_column
+            self.data[column]= self.data.apply(lambda x: parse(x[column], fuzzy=True), axis=1)
+        except pd.errors.ParserError:
+            f"Could not convert {column} to datetime64 compatible format"
+            return False
+        return self.data[column]

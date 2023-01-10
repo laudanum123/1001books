@@ -1,3 +1,4 @@
+from os import wait
 from src.browser import Browser
 from unittest import mock
 import pandas as pd
@@ -14,14 +15,29 @@ def test_browser_init(mock_read_sql):
 
 @mock.patch("pandas.read_sql", return_value=pd.DataFrame({"foo": [1, 2, 3]}))
 @mock.patch("src.browser.Browser.show_all_books")
-def test_browser_menu(mock_show_all_books, mock_read_sql):
+@mock.patch("src.browser.Browser.show_books_by_author")
+@mock.patch("src.browser.Browser.show_books_by_title")
+@mock.patch("src.browser.Browser.show_books_by_id")
+@mock.patch("src.browser.Browser.edit_book_details")
+def test_browser_menu(mock_read_sql, mock_show_all_books, mock_show_books_by_author, mock_show_books_by_title, mock_show_books_by_id, mock_edit_book_details):
     # Test the menu function
     test_browser = Browser(db_name="test.db")
-    with mock.patch("builtins.input", side_effect=["1", "q"]):
+    with mock.patch("builtins.input", side_effect=["1", "2", "3", "4", "5", "q"]):
         test_browser.menu()
     assert mock_read_sql.called
     assert mock_show_all_books.called
+    assert mock_show_books_by_author.called
+    assert mock_show_books_by_title.called
+    assert mock_show_books_by_id.called
+    assert mock_edit_book_details.called
 
+@mock.patch("pandas.read_sql", return_value=pd.DataFrame({"foo": [1, 2, 3]}))
+def test_bowser_menu_invalid_choice(mock_read_sql):
+    # Test the menu function
+    test_browser = Browser(db_name="test.db")
+    with mock.patch("builtins.input", side_effect=["6", "q"]):
+        test_browser.menu()
+    assert mock_read_sql.called
 
 @mock.patch("pandas.read_sql", return_value=pd.DataFrame({"foo": [1, 2, 3]}))
 def test_browser_show_all_books(mock_read_sql):
