@@ -7,7 +7,7 @@ from dateutil.parser import parse
 class Browser:
     def __init__(self, db_name: str):
         self.data = pd.read_sql("select * from books", con=sqlite3.connect(db_name))
-        self.data = self.data.replace("\\n", " ")
+        self.db_name = db_name
 
     def menu(self):
         print("Menu")
@@ -16,6 +16,7 @@ class Browser:
         print("3. Show books by title")
         print("4. Show books by id")
         print("5. Edit book details")
+        print("6. Show reading progress")
         print("q to exit")
         choice = input("Enter your choice: ")
 
@@ -29,7 +30,10 @@ class Browser:
             self.show_books_by_id()
         elif choice == "5":
             self.edit_book_details()
+        elif choice == "6":
+            pass
         elif choice == "q":
+            self.save_and_exit(self.db_name)
             return
         else:
             print("Invalid choice")
@@ -116,3 +120,27 @@ class Browser:
             )
         )
         return self.data[self.data["index"] == int(book_id)]
+
+    def convert_columns_to_datetime(self, columns: list):
+        for column in columns:
+            self.data[column] = pd.to_datetime(self.data[column])
+        return self.data
+
+    def save_and_exit(self, db_name: str):
+        want_to_save = input("Do you want to save changes? (y/n): ")
+        if (want_to_save == "y"):
+            try:
+                self.update_kpi()
+                self.data.to_sql(
+                    "books", con=sqlite3.connect(db_name), if_exists="replace", index=False
+                )
+                print("Changes saved")
+            except Exception as e:
+                print(e)
+                return False
+        else:
+            print("Changes not saved")
+
+    def update_kpi(self):
+        self.data["Days Read"] = (self.data["Date Finished"] - self.data["Date Started"]).dt.days
+        self.data["Pages per Day"] = self.data["Pages"] / self.data["Days Read"]

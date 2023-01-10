@@ -1,8 +1,8 @@
-from os import wait
 from src.browser import Browser
 from unittest import mock
 import pandas as pd
 from dateutil.parser import parse
+import sqlite3
 
 
 @mock.patch("pandas.read_sql", return_value=pd.DataFrame({"foo": [1, 2, 3]}))
@@ -19,10 +19,17 @@ def test_browser_init(mock_read_sql):
 @mock.patch("src.browser.Browser.show_books_by_title")
 @mock.patch("src.browser.Browser.show_books_by_id")
 @mock.patch("src.browser.Browser.edit_book_details")
-def test_browser_menu(mock_read_sql, mock_show_all_books, mock_show_books_by_author, mock_show_books_by_title, mock_show_books_by_id, mock_edit_book_details):
+def test_browser_menu(
+    mock_read_sql,
+    mock_show_all_books,
+    mock_show_books_by_author,
+    mock_show_books_by_title,
+    mock_show_books_by_id,
+    mock_edit_book_details,
+):
     # Test the menu function
     test_browser = Browser(db_name="test.db")
-    with mock.patch("builtins.input", side_effect=["1", "2", "3", "4", "5", "q"]):
+    with mock.patch("builtins.input", side_effect=["1", "2", "3", "4", "5", "q", "n"]):
         test_browser.menu()
     assert mock_read_sql.called
     assert mock_show_all_books.called
@@ -31,13 +38,15 @@ def test_browser_menu(mock_read_sql, mock_show_all_books, mock_show_books_by_aut
     assert mock_show_books_by_id.called
     assert mock_edit_book_details.called
 
+
 @mock.patch("pandas.read_sql", return_value=pd.DataFrame({"foo": [1, 2, 3]}))
 def test_bowser_menu_invalid_choice(mock_read_sql):
     # Test the menu function
     test_browser = Browser(db_name="test.db")
-    with mock.patch("builtins.input", side_effect=["6", "q"]):
+    with mock.patch("builtins.input", side_effect=["6", "q", "n"]):
         test_browser.menu()
     assert mock_read_sql.called
+
 
 @mock.patch("pandas.read_sql", return_value=pd.DataFrame({"foo": [1, 2, 3]}))
 def test_browser_show_all_books(mock_read_sql):
@@ -118,11 +127,59 @@ def test_browser_edit_book_details(mock_read_sql):
         "builtins.input", side_effect=[3, "2022-05-13", "2022-6-13"]
     ) as mock_input:
         found_books = test_browser.edit_book_details()
-        assert found_books.loc[found_books["index"] == 3, ["Date Started"]].values[0] == parse(
-            "2022-05-13", fuzzy=True
-        )
-        assert found_books.loc[found_books["index"] == 3, ["Date Finished"]].values[0] == parse(
-            "2022-06-13", fuzzy=True
-        )
+        assert found_books.loc[found_books["index"] == 3, ["Date Started"]].values[
+            0
+        ] == parse("2022-05-13", fuzzy=True)
+        assert found_books.loc[found_books["index"] == 3, ["Date Finished"]].values[
+            0
+        ] == parse("2022-06-13", fuzzy=True)
         assert mock_input.assert_called
         assert mock_read_sql.assert_called
+
+
+def test_save_and_exit():
+    # Test the exit_and_save function
+    test_browser = Browser(db_name="test.db")
+    with mock.patch("builtins.input", return_value="y") as mock_input:
+        with mock.patch.object(Browser, "update_kpi") as mock_convert:
+            with mock.patch("sqlite3.connect") as mock_connect:
+                test_browser.save_and_exit(test_browser.db_name)
+                assert mock_input.called
+                assert mock_connect.called
+
+
+def test_save_and_exit_exception():
+    # Test the exit and save function with sqlite3 exception
+    test_browser = Browser(db_name="test.db")
+    with mock.patch("builtins.input", return_value="y") as mock_input:
+        with mock.patch("sqlite3.connect", side_effect=sqlite3.Error):
+            return_value = test_browser.save_and_exit(test_browser.db_name)
+        assert mock_input.assert_called
+        assert return_value == False
+
+
+def test_convert_columns_to_datetime():
+    # Test the convert_to_datetime function
+    test_browser = Browser(db_name="test.db")
+    test_browser.data = test_browser.convert_columns_to_datetime(
+        ["Date Started", "Date Finished"]
+    )
+    assert test_browser.data["Date Started"].dtype == "datetime64[ns]"
+    assert test_browser.data["Date Finished"].dtype == "datetime64[ns]"
+
+
+def test_update_kpi():
+    test_browser = Browser(db_name="test.db")
+    
+    test_browser.data = pd.DataFrame(
+        {
+            "Date Started": ["2020-01-01", "2020-01-02"],
+            "Date Finished": ["2020-02-01", "2020-02-02"],
+            "Pages": [230, 240],
+        }
+    )
+    test_browser.update_kpi()
+    assert test_browser.data["Days Read"].values[0] == 31
+    assert test_browser.data["Days Read"].values[1] == 31
+    assert test_browser.data["Pages Per Day"].values[0] == 7.419354838709677
+    assert test_browser.data["Pages Per Day"].values[1] == 7.741935483870968
