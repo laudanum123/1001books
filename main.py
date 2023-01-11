@@ -19,5 +19,5 @@ if __name__ == "__main__":
         importer.write_to_sqlite("books.db")
 
     browser = Browser(db_name="books.db")
-    browser.convert_columns_to_datetime(['Date Started', 'Date Finished'])
+    browser.convert_columns_to_datetime(["Date Started", "Date Finished"])
     browser.menu()

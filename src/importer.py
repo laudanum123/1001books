@@ -71,7 +71,9 @@ class Importer:
     def convert_dates_to_correct_format(self, column: str) -> pd.Series:
         """Converts the dates in the column to the correct format"""
         try:
-            self.data[column]= self.data.apply(lambda x: parse(x[column], fuzzy=True), axis=1)
+            self.data[column] = self.data.apply(
+                lambda x: parse(x[column], fuzzy=True), axis=1
+            )
         except pd.errors.ParserError:
             f"Could not convert {column} to datetime64 compatible format"
             return False

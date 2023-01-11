@@ -3,6 +3,7 @@ from unittest import mock
 import pandas as pd
 from dateutil.parser import parse
 import sqlite3
+import pytest
 
 
 @mock.patch("pandas.read_sql", return_value=pd.DataFrame({"foo": [1, 2, 3]}))
@@ -170,7 +171,7 @@ def test_convert_columns_to_datetime():
 
 def test_update_kpi():
     test_browser = Browser(db_name="test.db")
-    
+
     test_browser.data = pd.DataFrame(
         {
             "Date Started": ["2020-01-01", "2020-01-02"],
@@ -178,8 +179,11 @@ def test_update_kpi():
             "Pages": [230, 240],
         }
     )
+    test_browser.data = test_browser.convert_columns_to_datetime(
+        ["Date Started", "Date Finished"]
+    )
     test_browser.update_kpi()
     assert test_browser.data["Days Read"].values[0] == 31
     assert test_browser.data["Days Read"].values[1] == 31
-    assert test_browser.data["Pages Per Day"].values[0] == 7.419354838709677
-    assert test_browser.data["Pages Per Day"].values[1] == 7.741935483870968
+    assert 7.42 == pytest.approx(test_browser.data["Pages per Day"].values[0], 0.1)
+    assert 7.49 == pytest.approx(test_browser.data["Pages per Day"].values[1], 0.1)

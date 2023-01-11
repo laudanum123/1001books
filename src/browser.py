@@ -2,6 +2,7 @@ import sqlite3
 import pandas as pd
 from tabulate import tabulate
 from dateutil.parser import parse
+from src.browser import Browser
 
 
 class Browser:
@@ -128,11 +129,14 @@ class Browser:
 
     def save_and_exit(self, db_name: str):
         want_to_save = input("Do you want to save changes? (y/n): ")
-        if (want_to_save == "y"):
+        if want_to_save == "y":
             try:
                 self.update_kpi()
                 self.data.to_sql(
-                    "books", con=sqlite3.connect(db_name), if_exists="replace", index=False
+                    "books",
+                    con=sqlite3.connect(db_name),
+                    if_exists="replace",
+                    index=False,
                 )
                 print("Changes saved")
             except Exception as e:
@@ -142,5 +146,7 @@ class Browser:
             print("Changes not saved")
 
     def update_kpi(self):
-        self.data["Days Read"] = (self.data["Date Finished"] - self.data["Date Started"]).dt.days
+        self.data["Days Read"] = (
+            self.data["Date Finished"] - self.data["Date Started"]
+        ).dt.days
         self.data["Pages per Day"] = self.data["Pages"] / self.data["Days Read"]
