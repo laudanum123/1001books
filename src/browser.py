@@ -132,7 +132,7 @@ class Browser:
         if want_to_save == "y":
             try:
                 self.update_kpi()
-                self.model.write_to_sqlite()
+                self.model.write_to_sqlite(write_index=False)
                 print("Changes saved")
             except Exception as e:
                 print(e)
@@ -166,17 +166,20 @@ class Browser:
         pages_to_read = total_pages - pages_read
 
         # Find the number of days the user has been reading
-        days_reading = (today - min(self.model.data["Date Started"])).days
+        mask = self.model.data["Date Started"].notna()
+        days_reading = (
+            pd.to_datetime(today) - self.model.data.loc[mask]["Date Started"].min()
+        ).days
 
         # Find the number of days the user needs to read to finish all books
         days_to_finish = pages_to_read * days_reading / pages_read
 
         # Calculate the age the user will be when they finish reading all the books
-        start_date = min(self.model.data["Date Started"])
+        start_date = self.model.data.loc[mask]["Date Started"].min()
         age_when_finish = (
             start_date + datetime.timedelta(days=days_to_finish)
         ).year - today.year
 
         print(
-            f"You will be {age_when_finish} years old when you finish reading all the books on the list."
+            f"You will be {age_when_finish} years older when you finish reading all the books on the list."
         )

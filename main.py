@@ -9,15 +9,7 @@ import os
 
 if __name__ == "__main__":
     if not os.path.exists("books.db"):
-        importer = Importer()
-        importer.read_config_file("config/config.yaml")
-        importer.import_original_list()
-        importer.reduce_to_relevant_columns(
-            relevant_columns=importer.config["relevant_columns"]
-        )
-        importer.convert_column_dtypes(column_dtypes=importer.config["column_dtypes"])
-        importer.write_to_sqlite("books.db")
-
-    browser = Browser(db_name="books.db")
-    browser.convert_columns_to_datetime(["Date Started", "Date Finished"])
+        importer = Importer("config/config.yaml")
+        importer.perform_import()
+    browser = Browser("config/config.yaml")
     browser.menu()

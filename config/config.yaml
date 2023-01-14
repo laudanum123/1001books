@@ -15,8 +15,8 @@ column_dtypes:
   Title: str
   Author: str
   Date: str
-  Pages: int
-  Last Edition: int
+  Pages: float
+  Last Edition: float 
   Owned: str
   Status: str
   Date Started: date

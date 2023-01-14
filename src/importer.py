@@ -9,12 +9,12 @@ class Importer:
         self.model = Model(config_file)
 
     def perform_import(self):
-        self.model.import_original_list()
+        self.model.import_original_list("list.tsv")
         self.model.data = self.reduce_to_relevant_columns(
             self.model.config["relevant_columns"]
         )
         self.model.data = self.convert_column_dtypes(self.model.config["column_dtypes"])
-        self.model.data = self.write_to_sqlite(self.model.config["db_name"])
+        self.model.data = self.model.write_to_sqlite()
 
     def reduce_to_relevant_columns(self, relevant_columns: list) -> pd.DataFrame:
         reduced_dataframe = self.model.data[relevant_columns]
