@@ -1,36 +1,24 @@
 # Imports the data from the csv file into the database
 import pandas as pd
-import yaml
-import sqlite3
 from dateutil.parser import parse
+from src.model import Model
 
 
 class Importer:
-    def __init__(self):
-        self.config = None
-        self.data = None
+    def __init__(self, config_file: str):
+        self.model = Model(config_file)
 
-    def read_config_file(self, config_file: yaml) -> dict:
-        # read yaml config file
-        with open(config_file, "r") as stream:
-            try:
-                self.config = yaml.safe_load(stream)
-            except yaml.YAMLError as exc:
-                print(exc)
-                return False
-        return self.config
-
-    def import_original_list(self) -> pd.DataFrame:
-        self.data = pd.read_csv("list.tsv", sep="\t")
-        return self.data
+    def perform_import(self):
+        self.model.import_original_list()
+        self.model.data = self.reduce_to_relevant_columns(
+            self.model.config["relevant_columns"]
+        )
+        self.model.data = self.convert_column_dtypes(self.model.config["column_dtypes"])
+        self.model.data = self.write_to_sqlite(self.model.config["db_name"])
 
     def reduce_to_relevant_columns(self, relevant_columns: list) -> pd.DataFrame:
-        self.data = self.data[relevant_columns]
-        return self.data
-
-    def write_to_sqlite(self, db_name: str) -> None:
-        self.data.to_sql("books", con=sqlite3.connect(db_name), if_exists="replace")
-        return self.data
+        reduced_dataframe = self.model.data[relevant_columns]
+        return reduced_dataframe
 
     def convert_column_dtypes(self, column_dtypes: dict) -> pd.DataFrame:
         """Converts the dtypes of the columns in the dataframe to the specified dtypes"""
@@ -38,7 +26,7 @@ class Importer:
 
         # Check if the columns are in the dataframe
         for column in column_dtypes.keys():
-            if column not in self.data.columns:
+            if column not in self.model.data.columns:
                 raise Exception(f"Column {column} not in dataframe")
 
         # Check if date columns are in the correct format
@@ -54,27 +42,27 @@ class Importer:
                     column_dtype[0]
                 ] = "datetime64"  # Make sure the desired dtype is datetime64
                 try:
-                    pd.to_datetime(self.data[column_dtype[0]])
+                    pd.to_datetime(self.model.data[column_dtype[0]])
                 except ValueError:
                     print(f"Column {column} is not in the correct format")
                     print(
                         "Trying to convert to datetime64 compatible format automatically"
                     )
-                    self.data[column_dtype[0]] = self.convert_dates_to_correct_format(
+                    self.model.data[
                         column_dtype[0]
-                    )
+                    ] = self.convert_dates_to_correct_format(column_dtype[0])
 
         # Convert the dtypes to the specified dtypes
-        self.data = self.data.astype(column_dtypes)
-        return self.data
+        self.model.data = self.model.data.astype(column_dtypes)
+        return self.model.data
 
     def convert_dates_to_correct_format(self, column: str) -> pd.Series:
         """Converts the dates in the column to the correct format"""
         try:
-            self.data[column] = self.data.apply(
+            self.model.data[column] = self.model.data.apply(
                 lambda x: parse(x[column], fuzzy=True), axis=1
             )
         except pd.errors.ParserError:
             f"Could not convert {column} to datetime64 compatible format"
             return False
-        return self.data[column]
+        return self.model.data[column]
