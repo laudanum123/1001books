@@ -1,4 +1,4 @@
-# Reading Progress Tracker
+# 1001 Books Reading Progress Tracker
 
 A Python command line application that allows you to track your reading progress on the book list from the 1001 books you must read before you die.
 
