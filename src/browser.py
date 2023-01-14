@@ -51,7 +51,9 @@ class Browser:
                     showindex=False,
                 )
             )
-            input("Press enter to continue")
+            key_press = input("Press enter to continue or q to quit: ")
+            if key_press == "q":
+                break
 
     # TODO: Refactor this to select books by criteria in single function
     def show_books_by_author(self) -> pd.DataFrame:
@@ -110,13 +112,15 @@ class Browser:
         )
         # Get new values for start/finish dates from user
         start_new_value = input("Enter start reading date (YYYY-MM-DD): ")
-        self.model.data.loc[
-            self.model.data["index"] == int(book_id), "Date Started"
-        ] = pd.to_datetime(parse(start_new_value, fuzzy=True))
+        if start_new_value:
+            self.model.data.loc[
+                self.model.data["index"] == int(book_id), "Date Started"
+            ] = pd.to_datetime(parse(start_new_value, fuzzy=True))
         end_new_value = input("Enter end reading date (YYYY-MM-DD): ")
-        self.model.data.loc[
-            self.model.data["index"] == int(book_id), "Date Finished"
-        ] = pd.to_datetime(parse(end_new_value, fuzzy=True))
+        if end_new_value:
+            self.model.data.loc[
+                self.model.data["index"] == int(book_id), "Date Finished"
+            ] = pd.to_datetime(parse(end_new_value, fuzzy=True))
         print(
             tabulate(
                 self.model.data[self.model.data["index"] == int(book_id)],
