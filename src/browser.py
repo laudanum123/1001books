@@ -1,9 +1,13 @@
+from os import wait
 import sqlite3
 import datetime
 import pandas as pd
 from tabulate import tabulate
 from dateutil.parser import parse
 from src.model import Model
+import numpy as np
+
+pd.options.mode.chained_assignment = None
 
 
 class Browser:
@@ -12,7 +16,7 @@ class Browser:
         self.model.read_data_from_db()
 
     def menu(self):
-        print("Menu")
+        print("\n\n\nMenu")
         print("1. Show all books")
         print("2. Show books by author")
         print("3. Show books by title")
@@ -33,7 +37,7 @@ class Browser:
         elif choice == "5":
             self.edit_book_details()
         elif choice == "6":
-            self.show_reading_progress()
+            self.show_average_reading_speed()
         elif choice == "q":
             self.save_and_exit()
             return
@@ -153,37 +157,62 @@ class Browser:
         )
 
     def show_reading_progress(self):
-        # Get the current date
-        today = datetime.datetime.now().date()
+        # filter out books that haven't been started
+        progress = self.model.data[self.model.data["Date Started"].notna()]
+        progress = progress[progress["Date Finished"].notna()]
+        # convert to reading days
+        progress["Reading Days"] = (
+            progress["Date Finished"] - progress["Date Started"]
+        ).dt.days
+        # replace 0 days with 1 day in order to avoid division by 0
+        progress["Reading Days"] = progress["Reading Days"].replace(0, 1)
+        # calculate pages per day
+        progress["Reading Speed"] = progress["Pages"] / progress["Reading Days"]
 
-        # Find the books that have not been finished yet
-        unfinished_books = self.model.data[self.model.data["Date Finished"].isna()]
-
-        # Find the total number of pages in unfinished books
-        total_pages = unfinished_books["Pages"].sum()
-
-        # Find the number of pages the user has read so far
-        finished_books = self.model.data[self.model.data["Date Finished"].notna()]
-        pages_read = finished_books["Pages"].sum()
-
-        # Find the number of pages the user needs to read
-        pages_to_read = total_pages - pages_read
-
-        # Find the number of days the user has been reading
-        mask = self.model.data["Date Started"].notna()
-        days_reading = (
-            pd.to_datetime(today) - self.model.data.loc[mask]["Date Started"].min()
-        ).days
-
-        # Find the number of days the user needs to read to finish all books
-        days_to_finish = pages_to_read * days_reading / pages_read
-
-        # Calculate the age the user will be when they finish reading all the books
-        start_date = self.model.data.loc[mask]["Date Started"].min()
-        age_when_finish = (
-            start_date + datetime.timedelta(days=days_to_finish)
-        ).year - today.year
-
+        # sort by date started
+        progress = progress.sort_values(by="Date Started")
         print(
-            f"You will be {age_when_finish} years older when you finish reading all the books on the list."
+            tabulate(
+                progress[["Title", "Reading Days", "Reading Speed"]],
+                headers="keys",
+                tablefmt="fancy_grid",
+                showindex=False,
+                floatfmt=".1f",
+            )
         )
+        return progress
+
+    def time_to_finish_list(self):
+        # filter out books that haven't been started
+        progress = self.model.data[self.model.data["Date Started"].notna()]
+        # convert to reading days
+        progress["Reading Days"] = (
+            progress["Date Finished"] - progress["Date Started"]
+        ).dt.days
+        # calculate reading speed
+        progress["Reading Speed"] = progress["Pages"] / progress["Reading Days"]
+        # calculate time to finish
+        progress["Time to Finish"] = (
+            progress["Pages"] - progress["Pages Read"]
+        ) / progress["Reading Speed"]
+        print(
+            tabulate(
+                progress[["Title", "Time to Finish"]],
+                headers="keys",
+                tablefmt="fancy_grid",
+                showindex=False,
+            )
+        )
+        return progress
+
+    def show_average_reading_speed(self):
+        progress = self.show_reading_progress()
+        self.show_read_unread_count()
+        avg_speed = progress["Reading Speed"].mean()
+
+        print(f"\nAverage reading speed: {avg_speed:.2f} pages/day")
+
+    def show_read_unread_count(self):
+        read_count = len(self.model.data[self.model.data["Date Finished"].notna()])
+        unread_count = len(self.model.data[self.model.data["Date Finished"].isna()])
+        print(f"\nBooks read: {read_count}, Books unread: {unread_count}")
