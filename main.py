@@ -1,5 +1,5 @@
 from src.importer import Importer
-from src.browser import Browser
+from src.ui import UI
 import os
 
 # Features:
@@ -11,5 +11,7 @@ if __name__ == "__main__":
     if not os.path.exists("books.db"):
         importer = Importer("config/config.yaml")
         importer.perform_import()
-    browser = Browser("config/config.yaml")
-    browser.menu()
+    ui = UI("config/config.yaml")
+    ui.create_menu()
+    # browser = Browser("config/config.yaml")
+    # browser.menu()

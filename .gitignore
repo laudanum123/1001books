@@ -3,3 +3,10 @@ test.db
 __pycache__/
 *.pyc/
 
+__pycache__
+.coverage
+bar
+books.db
+.vscode/settings.json
+src/__pycache__/importer.cpython-39.pyc
+src/__pycache__/importer.cpython-39.pyc
