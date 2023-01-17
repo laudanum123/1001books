@@ -1,8 +1,9 @@
 # 1001 Books Reading Progress Tracker
 
-A Python command line application that allows you to track your reading progress on the book list from the 1001 books you must read before you die.
+A QTUi or optionally Python command line application that allows you to track your reading progress on the book list from the 1001 books you must read before you die.
 
 ## Features
+- UI Client
 - Mark books as currently reading and read
 - Search for books by title, author or year of publication
 - See how many books you've completed
