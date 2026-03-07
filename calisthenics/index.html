@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f1117">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Calisthenics Trainer</title>
+<style>
+:root {
+  --bg-primary: #0f1117;
+  --bg-card: #1a1d27;
+  --bg-card-elevated: #242836;
+  --bg-input: #2a2e3a;
+  --text-primary: #e8eaed;
+  --text-secondary: #9aa0a6;
+  --text-muted: #5f6368;
+  --accent-green: #34d399;
+  --accent-green-dim: rgba(52, 211, 153, 0.15);
+  --accent-amber: #fbbf24;
+  --accent-amber-dim: rgba(251, 191, 36, 0.15);
+  --accent-red: #f87171;
+  --accent-red-dim: rgba(248, 113, 113, 0.15);
+  --accent-blue: #60a5fa;
+  --accent-blue-dim: rgba(96, 165, 250, 0.15);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+#app {
+  max-width: 480px;
+  margin: 0 auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.screen {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: none;
+  flex-direction: column;
+  -webkit-overflow-scrolling: touch;
+}
+
+.screen.active {
+  display: flex;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 24px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s, opacity 0.2s;
+  min-height: 48px;
+  width: 100%;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  background: var(--accent-green);
+  color: #0f1117;
+}
+
+.btn-secondary {
+  background: var(--bg-card-elevated);
+  color: var(--text-primary);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--bg-card-elevated);
+}
+
+.btn-danger {
+  background: var(--accent-red-dim);
+  color: var(--accent-red);
+}
+
+.btn-small {
+  padding: 8px 16px;
+  font-size: 14px;
+  min-height: 40px;
+  width: auto;
+}
+
+/* Cards */
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+/* Warning Banner */
+.shoulder-banner {
+  background: var(--accent-amber-dim);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--accent-amber);
+}
+
+.shoulder-banner .icon { font-size: 18px; flex-shrink: 0; }
+
+/* Header */
+.app-header {
+  text-align: center;
+  padding: 32px 0 16px;
+}
+
+.app-header h1 {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.app-header .subtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Week Tracker */
+.week-tracker {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.week-dot {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-card-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--text-muted);
+  transition: all 0.3s;
+}
+
+.week-dot.done {
+  background: var(--accent-green);
+  border-color: var(--accent-green);
+  color: #0f1117;
+}
+
+.week-dot.today {
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+}
+
+/* Last workout info */
+.last-workout {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin-bottom: 24px;
+}
+
+/* Warm-up */
+.warmup-timer {
+  text-align: center;
+  font-size: 48px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-blue);
+  margin: 16px 0;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.checklist-item.checked {
+  background: var(--accent-green-dim);
+}
+
+.check-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.checklist-item.checked .check-circle {
+  background: var(--accent-green);
+  border-color: var(--accent-green);
+  color: #0f1117;
+}
+
+.checklist-label { font-size: 15px; }
+.checklist-note { font-size: 12px; color: var(--text-secondary); }
+
+/* Exercise Screen */
+.exercise-progress {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.progress-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--bg-card-elevated);
+  transition: all 0.3s;
+}
+
+.progress-dot.active {
+  background: var(--accent-green);
+  width: 24px;
+  border-radius: 5px;
+}
+
+.progress-dot.done {
+  background: var(--accent-green);
+}
+
+.exercise-name {
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.exercise-target {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+/* Shoulder Warning Badge */
+.shoulder-warning {
+  background: var(--accent-amber-dim);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--accent-amber);
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.shoulder-warning .icon { flex-shrink: 0; margin-top: 1px; }
+
+/* Set Tracker */
+.set-tracker {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 16px 0;
+}
+
+.set-btn {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 3px solid var(--bg-card-elevated);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.set-btn.completed {
+  background: var(--accent-green);
+  border-color: var(--accent-green);
+  color: #0f1117;
+  animation: pop 0.3s ease;
+}
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+.set-btn .set-label { font-size: 11px; }
+.set-btn .set-check { font-size: 24px; }
+
+/* Form Cues */
+.form-cues-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 14px;
+  border: none;
+  background: none;
+  width: 100%;
+}
+
+.form-cues-toggle .arrow {
+  transition: transform 0.2s;
+}
+
+.form-cues-toggle.open .arrow {
+  transform: rotate(180deg);
+}
+
+.form-cues-list {
+  display: none;
+  padding: 0 0 8px 20px;
+}
+
+.form-cues-list.open {
+  display: block;
+}
+
+.form-cues-list li {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+/* Timer */
+.timer-container {
+  text-align: center;
+  margin: 16px 0;
+}
+
+.timer-display {
+  font-size: 64px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  margin: 8px 0;
+}
+
+.timer-display.rest { color: var(--accent-blue); }
+.timer-display.plank { color: var(--accent-green); }
+
+.timer-display.warning {
+  animation: pulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+  from { opacity: 1; }
+  to { opacity: 0.5; }
+}
+
+.timer-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.timer-controls {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.timer-adjust {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.timer-adjust button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--bg-card-elevated);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.timer-adjust span {
+  font-size: 14px;
+  color: var(--text-secondary);
+  min-width: 40px;
+  text-align: center;
+}
+
+/* SVG Progress Ring */
+.progress-ring {
+  position: relative;
+  display: inline-block;
+}
+
+.progress-ring svg {
+  transform: rotate(-90deg);
+}
+
+.progress-ring .ring-bg {
+  stroke: var(--bg-card-elevated);
+}
+
+.progress-ring .ring-fill {
+  transition: stroke-dashoffset 0.1s linear;
+}
+
+.timer-text-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Exercise Nav */
+.exercise-nav {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.exercise-nav .btn {
+  flex: 1;
+}
+
+/* Summary */
+.summary-header {
+  text-align: center;
+  padding: 24px 0 16px;
+}
+
+.summary-header h2 {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+.summary-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent-green);
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.exercise-summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.exercise-summary-sets {
+  color: var(--accent-green);
+  font-weight: 600;
+}
+
+/* History */
+.history-item {
+  padding: 14px;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+}
+
+.history-date {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.history-detail {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* Red Lines Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-overlay.open {
+  display: flex;
+}
+
+.modal-content {
+  background: var(--bg-card);
+  border-radius: var(--radius) var(--radius) 0 0;
+  padding: 24px 16px 32px;
+  max-width: 480px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-handle {
+  width: 40px;
+  height: 4px;
+  background: var(--text-muted);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+
+.modal-content h3 {
+  color: var(--accent-red);
+  margin-bottom: 16px;
+  font-size: 18px;
+}
+
+.red-line-item {
+  background: var(--accent-red-dim);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.red-line-item strong {
+  color: var(--accent-red);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.red-line-item p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.red-line-note {
+  margin-top: 16px;
+  padding: 12px;
+  background: var(--accent-amber-dim);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--accent-amber);
+}
+
+/* Warning FAB */
+.warning-fab {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--accent-red);
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(248, 113, 113, 0.4);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Screen title bar */
+.screen-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.screen-title h2 {
+  font-size: 20px;
+  flex: 1;
+}
+
+.back-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 40px 0;
+  color: var(--text-muted);
+}
+
+/* Flash effect for vibration fallback */
+.flash {
+  animation: flash-anim 0.3s ease;
+}
+
+@keyframes flash-anim {
+  0%, 100% { background: var(--bg-primary); }
+  50% { background: var(--bg-card-elevated); }
+}
+
+/* Scrollbar */
+.screen::-webkit-scrollbar { width: 0; }
+
+@media (min-width: 640px) {
+  .btn { font-size: 17px; }
+  .exercise-name { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- Screens rendered by JS -->
+</div>
+
+<!-- Red Lines Modal -->
+<div class="modal-overlay" id="redLinesModal">
+  <div class="modal-content">
+    <div class="modal-handle"></div>
+    <h3>&#x1F6A8; Rote Linien &ndash; Schulterprotokoll</h3>
+    <div class="red-line-item">
+      <strong>Dips (Barrenst&uuml;tz)</strong>
+      <p>Extremer Stress auf die vordere Schulterkapsel. Im Moment absolut tabu.</p>
+    </div>
+    <div class="red-line-item">
+      <strong>Breite Klimmz&uuml;ge</strong>
+      <p>&Uuml;berm&auml;&szlig;ige Au&szlig;enrotation unter Last. Besser: enge Klimmz&uuml;ge im Untergriff oder horizontales Rudern.</p>
+    </div>
+    <div class="red-line-item">
+      <strong>Explosive &Uuml;berkopfbewegungen</strong>
+      <p>Handstand-Liegest&uuml;tze und &auml;hnliches erst, wenn die Schulter zu 100% stabil ist.</p>
+    </div>
+    <div class="red-line-note">
+      Wenn eine &Uuml;bung scharfen Schmerz, Klicken oder Instabilit&auml;t in der Schulter verursacht, sofort aufh&ouml;ren!
+    </div>
+    <button class="btn btn-secondary" style="margin-top:16px" data-action="close-modal">Verstanden</button>
+  </div>
+</div>
+
+<!-- Warning FAB -->
+<button class="warning-fab" data-action="open-redlines" title="Rote Linien">&#x26A0;</button>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const EXERCISES = [
+  {
+    id: 'squats',
+    name: 'Kniebeugen',
+    nameShort: 'Squats',
+    sets: 3,
+    reps: '15-20',
+    restSeconds: 75,
+    isHold: false,
+    shoulderWarning: null,
+    formCues: [
+      'Schulterbreiter Stand, Füße leicht nach außen gedreht',
+      'Gewicht auf den Fersen',
+      'Knie folgen der Fußspitzenrichtung',
+      'Brust raus, Rücken gerade',
+      'So tief wie möglich (mindestens parallel)'
+    ]
+  },
+  {
+    id: 'australian-pullups',
+    name: 'Körpergewichtsrudern',
+    nameShort: 'Australian Pull-Ups',
+    sets: 3,
+    reps: '8-12',
+    restSeconds: 75,
+    isHold: false,
+    shoulderWarning: 'Ellenbogen auf 45 Grad halten, nicht abspreizen. Bei Schulterbeschwerden sofort aufhören. Stärkt die hintere Schulter und stabilisiert das Gelenk.',
+    formCues: [
+      'Schulterbreiter Griff an Stange, Tisch oder Ringen',
+      'Körper gerade wie ein Brett',
+      'Brust zur Stange ziehen',
+      'Schulterblätter zusammendrücken',
+      'Kontrolliert absenken'
+    ]
+  },
+  {
+    id: 'pushups',
+    name: 'Liegestütze (Pfeil-Form)',
+    nameShort: 'Push-Ups',
+    sets: 3,
+    reps: '8-12',
+    restSeconds: 75,
+    isHold: false,
+    shoulderWarning: 'NUR PFEIL-FORM! Ellenbogen nach hinten (45°), NICHT zur Seite (T-Form). T-Form belastet die vordere Schulterkapsel extrem. Bei Bedarf erhöht auf Stuhl/Tisch.',
+    formCues: [
+      'Hände etwas breiter als schulterbreit',
+      'Ellenbogen nach hinten (Pfeilform ←↓→)',
+      'Rumpf angespannt, Körper bildet eine Linie',
+      'Brust bis zum Boden absenken',
+      'Arme oben voll durchstrecken'
+    ]
+  },
+  {
+    id: 'lunges',
+    name: 'Ausfallschritte',
+    nameShort: 'Lunges',
+    sets: 3,
+    reps: '10 pro Bein',
+    restSeconds: 75,
+    isHold: false,
+    shoulderWarning: null,
+    formCues: [
+      'Großen Schritt nach vorne',
+      'Knie über dem Sprunggelenk',
+      'Hinteres Knie fast zum Boden',
+      'Oberkörper aufrecht halten',
+      'Durch die Ferse zurückdrücken',
+      'Beine abwechselnd'
+    ]
+  },
+  {
+    id: 'band-pull-aparts',
+    name: 'Band Pull-Aparts',
+    nameShort: 'Schulter-Prehab',
+    sets: 3,
+    reps: '15',
+    restSeconds: 60,
+    isHold: false,
+    shoulderWarning: 'Kontrollierte Bewegung! Leichtes Band verwenden. NUR vor dem Körper arbeiten, niemals über den Kopf oder hinter den Rücken!',
+    formCues: [
+      'Band auf Brusthöhe, Arme gestreckt',
+      'Band auseinanderziehen bis zur Brust',
+      'Schulterblätter zusammendrücken',
+      'Kontrolliert zurückführen',
+      'Schultern nicht hochziehen'
+    ]
+  },
+  {
+    id: 'plank',
+    name: 'Unterarmstütz',
+    nameShort: 'Plank',
+    sets: 3,
+    reps: '30-60 Sek. halten',
+    restSeconds: 60,
+    isHold: true,
+    holdSeconds: 45,
+    shoulderWarning: 'Schultern nach unten drücken und stabilisieren. Nicht nach vorne runden oder zu den Ohren hochziehen.',
+    formCues: [
+      'Unterarme auf dem Boden, Ellenbogen unter den Schultern',
+      'Körper bildet eine gerade Linie',
+      'Po und Bauch fest anspannen',
+      'Hüfte weder durchhängen noch hochdrücken',
+      'Gleichmäßig atmen'
+    ]
+  }
+];
+
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  screen: 'home', // home, warmup, exercise, summary, history
+  warmup: { startTime: null, items: [false, false, false] },
+  currentExercise: 0,
+  exercises: EXERCISES.map(e => ({
+    id: e.id,
+    completedSets: [],
+    formCuesOpen: false
+  })),
+  restTimer: { active: false, startTime: null, duration: 75, remaining: 75 },
+  plankTimer: { active: false, startTime: null, duration: 45, elapsed: 0 },
+  sessionStartTime: null,
+  history: []
+};
+
+let warmupIntervalId = null;
+let timerAnimFrameId = null;
+
+// ============================================================
+// STORAGE
+// ============================================================
+function loadHistory() {
+  try {
+    const data = localStorage.getItem('calisthenics_history');
+    if (data) state.history = JSON.parse(data);
+  } catch(e) {}
+}
+
+function saveHistory() {
+  try {
+    localStorage.setItem('calisthenics_history', JSON.stringify(state.history));
+  } catch(e) {}
+}
+
+function saveSession() {
+  try {
+    const data = {
+      screen: state.screen,
+      currentExercise: state.currentExercise,
+      exercises: state.exercises,
+      warmup: state.warmup,
+      sessionStartTime: state.sessionStartTime
+    };
+    localStorage.setItem('calisthenics_session', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function loadSession() {
+  try {
+    const data = localStorage.getItem('calisthenics_session');
+    if (!data) return false;
+    const s = JSON.parse(data);
+    if (s.screen === 'home' || s.screen === 'summary') return false;
+    state.screen = s.screen;
+    state.currentExercise = s.currentExercise;
+    state.exercises = s.exercises;
+    state.warmup = s.warmup;
+    state.sessionStartTime = s.sessionStartTime;
+    return true;
+  } catch(e) { return false; }
+}
+
+function clearSession() {
+  localStorage.removeItem('calisthenics_session');
+}
+
+// ============================================================
+// AUDIO
+// ============================================================
+let audioCtx = null;
+
+function playBeep() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.frequency.value = 880;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime + 0.5);
+  } catch(e) {}
+}
+
+function vibrate(ms) {
+  if (navigator.vibrate) {
+    navigator.vibrate(ms || 500);
+  } else {
+    document.body.classList.add('flash');
+    setTimeout(() => document.body.classList.remove('flash'), 300);
+  }
+}
+
+// ============================================================
+// TIMER LOGIC
+// ============================================================
+function startRestTimer(duration) {
+  stopAllTimers();
+  state.restTimer = { active: true, startTime: Date.now(), duration: duration || 75, remaining: duration || 75 };
+  tickTimer();
+}
+
+function startPlankTimer(duration) {
+  stopAllTimers();
+  state.plankTimer = { active: true, startTime: Date.now(), duration: duration || 45, elapsed: 0 };
+  tickTimer();
+}
+
+function stopAllTimers() {
+  state.restTimer.active = false;
+  state.plankTimer.active = false;
+  if (timerAnimFrameId) cancelAnimationFrame(timerAnimFrameId);
+  timerAnimFrameId = null;
+}
+
+function tickTimer() {
+  const now = Date.now();
+
+  if (state.restTimer.active) {
+    const elapsed = (now - state.restTimer.startTime) / 1000;
+    state.restTimer.remaining = Math.max(0, state.restTimer.duration - elapsed);
+
+    const display = document.getElementById('timer-display');
+    const ring = document.getElementById('timer-ring');
+
+    if (display) {
+      const secs = Math.ceil(state.restTimer.remaining);
+      display.textContent = secs;
+      if (secs <= 5 && secs > 0) {
+        display.classList.add('warning');
+      } else {
+        display.classList.remove('warning');
+      }
+    }
+    if (ring) {
+      const circumference = 2 * Math.PI * 54;
+      const progress = state.restTimer.remaining / state.restTimer.duration;
+      ring.style.strokeDashoffset = circumference * (1 - progress);
+    }
+
+    if (state.restTimer.remaining <= 0) {
+      state.restTimer.active = false;
+      playBeep();
+      vibrate(800);
+      if (display) {
+        display.textContent = '0';
+        display.classList.remove('warning');
+      }
+      setTimeout(() => renderExerciseTimerArea(), 100);
+      return;
+    }
+  }
+
+  if (state.plankTimer.active) {
+    const elapsed = (now - state.plankTimer.startTime) / 1000;
+    state.plankTimer.elapsed = elapsed;
+
+    const display = document.getElementById('timer-display');
+    const ring = document.getElementById('timer-ring');
+
+    if (display) {
+      const secs = Math.floor(elapsed);
+      display.textContent = secs;
+      if (secs >= state.plankTimer.duration) {
+        display.classList.add('warning');
+      }
+    }
+    if (ring) {
+      const circumference = 2 * Math.PI * 54;
+      const progress = Math.min(elapsed / state.plankTimer.duration, 1);
+      ring.style.strokeDashoffset = circumference * (1 - progress);
+    }
+
+    if (elapsed >= state.plankTimer.duration && Math.floor(elapsed) === state.plankTimer.duration) {
+      playBeep();
+      vibrate(500);
+    }
+  }
+
+  timerAnimFrameId = requestAnimationFrame(tickTimer);
+}
+
+// ============================================================
+// RENDERING
+// ============================================================
+function render() {
+  const app = document.getElementById('app');
+  switch (state.screen) {
+    case 'home': app.innerHTML = renderHome(); break;
+    case 'warmup': app.innerHTML = renderWarmup(); break;
+    case 'exercise': app.innerHTML = renderExercise(); break;
+    case 'summary': app.innerHTML = renderSummary(); break;
+    case 'history': app.innerHTML = renderHistory(); break;
+  }
+  saveSession();
+}
+
+function getWeekSessions() {
+  const now = new Date();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+  monday.setHours(0, 0, 0, 0);
+  return state.history.filter(h => new Date(h.date) >= monday).length;
+}
+
+function renderHome() {
+  const weekDone = getWeekSessions();
+  const lastSession = state.history.length > 0 ? state.history[state.history.length - 1] : null;
+  const lastDate = lastSession ? new Date(lastSession.date).toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' }) : null;
+
+  return `
+    <div class="screen active">
+      <div class="shoulder-banner" data-action="open-redlines">
+        <span class="icon">&#x26A0;</span>
+        <span>Schulterprotokoll aktiv &ndash; vorherige Luxation. Antippen f&uuml;r Details.</span>
+      </div>
+      <div class="app-header">
+        <h1>Calisthenics</h1>
+        <div class="subtitle">Ganzk&ouml;rper-Training &bull; 3x pro Woche</div>
+      </div>
+      <div class="week-tracker">
+        ${[1,2,3].map(i => `<div class="week-dot ${i <= weekDone ? 'done' : ''}">${i <= weekDone ? '&#x2713;' : i}</div>`).join('')}
+      </div>
+      <div class="last-workout">
+        ${lastDate ? 'Letztes Training: ' + lastDate : 'Noch kein Training absolviert'}
+      </div>
+      <button class="btn btn-primary" data-action="start-workout" style="margin-bottom:10px">Training starten</button>
+      <button class="btn btn-secondary" data-action="show-history">Verlauf anzeigen</button>
+    </div>
+  `;
+}
+
+function renderWarmup() {
+  const labels = [
+    { text: 'Leichtes Cardio', note: 'Auf der Stelle joggen oder Hampelmänner' },
+    { text: 'Schulter-Kreisen', note: 'Kleine, kontrollierte Kreise. Kein Ruck!' },
+    { text: 'Cat-Cow (Katze-Kuh)', note: 'Vierfüßlerstand: Rücken runden & durchdrücken' }
+  ];
+
+  return `
+    <div class="screen active">
+      <div class="screen-title">
+        <button class="back-btn" data-action="go-home">&#x2190;</button>
+        <h2>Aufwärmen</h2>
+      </div>
+      <div class="warmup-timer" id="warmup-timer">0:00</div>
+      <div class="timer-label" style="text-align:center;margin-bottom:16px">5-10 Minuten empfohlen</div>
+      ${labels.map((l, i) => `
+        <div class="checklist-item ${state.warmup.items[i] ? 'checked' : ''}" data-action="toggle-warmup" data-index="${i}">
+          <div class="check-circle">${state.warmup.items[i] ? '&#x2713;' : ''}</div>
+          <div>
+            <div class="checklist-label">${l.text}</div>
+            <div class="checklist-note">${l.note}</div>
+          </div>
+        </div>
+      `).join('')}
+      <div style="margin-top:auto;padding-top:16px">
+        <button class="btn btn-primary" data-action="start-exercises">Workout starten</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderExercise() {
+  const idx = state.currentExercise;
+  const ex = EXERCISES[idx];
+  const exState = state.exercises[idx];
+
+  const circumference = 2 * Math.PI * 54;
+
+  return `
+    <div class="screen active">
+      <div class="exercise-progress">
+        ${EXERCISES.map((_, i) => {
+          const done = state.exercises[i].completedSets.length >= EXERCISES[i].sets;
+          return `<div class="progress-dot ${i === idx ? 'active' : ''} ${done ? 'done' : ''}"></div>`;
+        }).join('')}
+      </div>
+      <div class="exercise-name">${ex.name}</div>
+      <div class="exercise-target">${ex.sets} S&auml;tze &times; ${ex.reps}</div>
+
+      ${ex.shoulderWarning ? `
+        <div class="shoulder-warning">
+          <span class="icon">&#x26A0;</span>
+          <span>${ex.shoulderWarning}</span>
+        </div>
+      ` : ''}
+
+      <div class="set-tracker">
+        ${Array.from({length: ex.sets}, (_, i) => {
+          const done = i < exState.completedSets.length;
+          return `<button class="set-btn ${done ? 'completed' : ''}" data-action="toggle-set" data-set="${i}">
+            ${done ? '<span class="set-check">&#x2713;</span>' : `<span class="set-label">Satz ${i+1}</span>`}
+          </button>`;
+        }).join('')}
+      </div>
+
+      <div id="timer-area">${renderTimerArea(ex, exState)}</div>
+
+      <div class="card" style="padding:0">
+        <button class="form-cues-toggle ${exState.formCuesOpen ? 'open' : ''}" data-action="toggle-cues">
+          <span>Ausf&uuml;hrungshinweise</span>
+          <span class="arrow">&#x25BC;</span>
+        </button>
+        <ul class="form-cues-list ${exState.formCuesOpen ? 'open' : ''}">
+          ${ex.formCues.map(c => `<li>${c}</li>`).join('')}
+        </ul>
+      </div>
+
+      <div class="exercise-nav">
+        <button class="btn btn-secondary" data-action="prev-exercise" ${idx === 0 ? 'disabled style="opacity:0.3"' : ''}>&#x2190; Zur&uuml;ck</button>
+        <button class="btn btn-primary" data-action="next-exercise">
+          ${idx === EXERCISES.length - 1 ? 'Abschließen' : 'Weiter &#x2192;'}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function renderTimerArea(ex, exState) {
+  const circumference = 2 * Math.PI * 54;
+
+  if (ex.isHold) {
+    // Plank timer
+    const elapsed = state.plankTimer.active ? Math.floor(state.plankTimer.elapsed) : 0;
+    const progress = state.plankTimer.active ? Math.min(state.plankTimer.elapsed / state.plankTimer.duration, 1) : 0;
+    return `
+      <div class="timer-container">
+        <div class="timer-label">Haltezeit</div>
+        <div class="progress-ring">
+          <svg width="140" height="140">
+            <circle class="ring-bg" cx="70" cy="70" r="54" fill="none" stroke-width="8"/>
+            <circle class="ring-fill" id="timer-ring" cx="70" cy="70" r="54" fill="none"
+              stroke="${'var(--accent-green)'}" stroke-width="8"
+              stroke-dasharray="${circumference}"
+              stroke-dashoffset="${circumference * (1 - progress)}"
+              stroke-linecap="round"/>
+          </svg>
+          <div class="timer-text-overlay" id="timer-display" style="color:var(--accent-green)">${elapsed}</div>
+        </div>
+        <div class="timer-adjust">
+          <button data-action="plank-adjust" data-delta="-5">-5s</button>
+          <span>${state.plankTimer.duration}s Ziel</span>
+          <button data-action="plank-adjust" data-delta="5">+5s</button>
+        </div>
+        <div class="timer-controls">
+          ${state.plankTimer.active
+            ? `<button class="btn btn-small btn-secondary" data-action="stop-plank">Stopp</button>`
+            : `<button class="btn btn-small btn-primary" data-action="start-plank">Start</button>`
+          }
+        </div>
+      </div>
+    `;
+  }
+
+  // Rest timer
+  if (state.restTimer.active) {
+    const remaining = Math.ceil(state.restTimer.remaining);
+    const progress = state.restTimer.remaining / state.restTimer.duration;
+    return `
+      <div class="timer-container">
+        <div class="timer-label">Pause</div>
+        <div class="progress-ring">
+          <svg width="140" height="140">
+            <circle class="ring-bg" cx="70" cy="70" r="54" fill="none" stroke-width="8"/>
+            <circle class="ring-fill" id="timer-ring" cx="70" cy="70" r="54" fill="none"
+              stroke="var(--accent-blue)" stroke-width="8"
+              stroke-dasharray="${circumference}"
+              stroke-dashoffset="${circumference * (1 - progress)}"
+              stroke-linecap="round"/>
+          </svg>
+          <div class="timer-text-overlay rest" id="timer-display">${remaining}</div>
+        </div>
+        <div class="timer-controls">
+          <button class="btn btn-small btn-secondary" data-action="skip-rest">&#x23ED; &Uuml;berspringen</button>
+        </div>
+      </div>
+    `;
+  }
+
+  // Show rest button if any set completed but rest not running
+  if (exState.completedSets.length > 0 && exState.completedSets.length < ex.sets) {
+    return `
+      <div class="timer-container">
+        <div class="timer-adjust">
+          <button data-action="rest-adjust" data-delta="-15">-15s</button>
+          <span>${state.restTimer.duration}s Pause</span>
+          <button data-action="rest-adjust" data-delta="15">+15s</button>
+        </div>
+        <div class="timer-controls">
+          <button class="btn btn-small btn-primary" data-action="start-rest">Pause starten</button>
+        </div>
+      </div>
+    `;
+  }
+
+  return '';
+}
+
+function renderExerciseTimerArea() {
+  const area = document.getElementById('timer-area');
+  if (!area) return;
+  const idx = state.currentExercise;
+  area.innerHTML = renderTimerArea(EXERCISES[idx], state.exercises[idx]);
+}
+
+function renderSummary() {
+  const duration = state.sessionStartTime ? Math.floor((Date.now() - state.sessionStartTime) / 1000) : 0;
+  const mins = Math.floor(duration / 60);
+  const totalSets = state.exercises.reduce((sum, e) => sum + e.completedSets.length, 0);
+  const totalExercises = state.exercises.filter(e => e.completedSets.length > 0).length;
+
+  return `
+    <div class="screen active">
+      <div class="summary-header">
+        <h2>Training abgeschlossen!</h2>
+        <div class="subtitle" style="color:var(--accent-green)">Gut gemacht!</div>
+      </div>
+      <div class="summary-stats">
+        <div class="stat-card">
+          <div class="stat-value">${mins}</div>
+          <div class="stat-label">Minuten</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${totalSets}</div>
+          <div class="stat-label">S&auml;tze</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${totalExercises}</div>
+          <div class="stat-label">&Uuml;bungen</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${getWeekSessions() + 1}/3</div>
+          <div class="stat-label">Diese Woche</div>
+        </div>
+      </div>
+      ${state.exercises.map((e, i) => {
+        const ex = EXERCISES[i];
+        return `<div class="exercise-summary-item">
+          <span>${ex.name}</span>
+          <span class="exercise-summary-sets">${e.completedSets.length}/${ex.sets}</span>
+        </div>`;
+      }).join('')}
+      <div style="margin-top:auto;padding-top:16px">
+        <button class="btn btn-primary" data-action="save-session" style="margin-bottom:8px">Speichern &amp; Beenden</button>
+        <button class="btn btn-outline" data-action="discard-session">Verwerfen</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderHistory() {
+  const items = [...state.history].reverse();
+  return `
+    <div class="screen active">
+      <div class="screen-title">
+        <button class="back-btn" data-action="go-home">&#x2190;</button>
+        <h2>Trainingsverlauf</h2>
+      </div>
+      ${items.length === 0 ? '<div class="empty-state">Noch keine Trainings absolviert.</div>' : ''}
+      ${items.map(h => {
+        const d = new Date(h.date).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'short' });
+        const mins = Math.floor((h.duration || 0) / 60);
+        const sets = h.exercises ? h.exercises.reduce((s, e) => s + e.completedSets.length, 0) : 0;
+        return `<div class="history-item">
+          <div class="history-date">${d}</div>
+          <div class="history-detail">${mins} Min. &bull; ${sets} S&auml;tze</div>
+        </div>`;
+      }).join('')}
+      <div style="margin-top:16px">
+        ${items.length > 0 ? '<button class="btn btn-outline btn-danger" data-action="clear-history">Verlauf l&ouml;schen</button>' : ''}
+      </div>
+    </div>
+  `;
+}
+
+// ============================================================
+// EVENT HANDLING
+// ============================================================
+document.getElementById('app').addEventListener('click', handleAction);
+document.getElementById('redLinesModal').addEventListener('click', handleAction);
+document.querySelector('.warning-fab').addEventListener('click', handleAction);
+
+function handleAction(e) {
+  const el = e.target.closest('[data-action]');
+  if (!el) return;
+  const action = el.dataset.action;
+
+  switch (action) {
+    case 'open-redlines':
+      document.getElementById('redLinesModal').classList.add('open');
+      break;
+
+    case 'close-modal':
+      document.getElementById('redLinesModal').classList.remove('open');
+      break;
+
+    case 'start-workout':
+      state.screen = 'warmup';
+      state.sessionStartTime = Date.now();
+      state.warmup = { startTime: Date.now(), items: [false, false, false] };
+      state.exercises = EXERCISES.map(e => ({ id: e.id, completedSets: [], formCuesOpen: false }));
+      state.currentExercise = 0;
+      stopAllTimers();
+      state.restTimer.duration = 75;
+      render();
+      startWarmupTimer();
+      break;
+
+    case 'go-home':
+      state.screen = 'home';
+      stopAllTimers();
+      stopWarmupTimer();
+      render();
+      break;
+
+    case 'toggle-warmup': {
+      const idx = parseInt(el.dataset.index);
+      state.warmup.items[idx] = !state.warmup.items[idx];
+      render();
+      startWarmupTimer();
+      break;
+    }
+
+    case 'start-exercises':
+      state.screen = 'exercise';
+      stopWarmupTimer();
+      render();
+      break;
+
+    case 'toggle-set': {
+      const setIdx = parseInt(el.dataset.set);
+      const exState = state.exercises[state.currentExercise];
+      if (setIdx < exState.completedSets.length) {
+        // Undo
+        exState.completedSets = exState.completedSets.slice(0, setIdx);
+        stopAllTimers();
+      } else if (setIdx === exState.completedSets.length) {
+        exState.completedSets.push(1);
+        // Auto-start rest timer for non-hold exercises
+        const ex = EXERCISES[state.currentExercise];
+        if (!ex.isHold && exState.completedSets.length < ex.sets) {
+          setTimeout(() => startRestTimer(state.restTimer.duration), 500);
+        }
+      }
+      render();
+      break;
+    }
+
+    case 'toggle-cues': {
+      const exState = state.exercises[state.currentExercise];
+      exState.formCuesOpen = !exState.formCuesOpen;
+      render();
+      break;
+    }
+
+    case 'start-rest':
+      startRestTimer(state.restTimer.duration);
+      renderExerciseTimerArea();
+      break;
+
+    case 'skip-rest':
+      stopAllTimers();
+      renderExerciseTimerArea();
+      break;
+
+    case 'rest-adjust': {
+      const delta = parseInt(el.dataset.delta);
+      state.restTimer.duration = Math.max(30, Math.min(120, state.restTimer.duration + delta));
+      renderExerciseTimerArea();
+      break;
+    }
+
+    case 'start-plank':
+      startPlankTimer(state.plankTimer.duration);
+      renderExerciseTimerArea();
+      break;
+
+    case 'stop-plank': {
+      const elapsed = Math.floor(state.plankTimer.elapsed);
+      stopAllTimers();
+      // Auto-mark set as completed with elapsed time
+      const exState = state.exercises[state.currentExercise];
+      if (exState.completedSets.length < EXERCISES[state.currentExercise].sets) {
+        exState.completedSets.push(elapsed);
+      }
+      render();
+      break;
+    }
+
+    case 'plank-adjust': {
+      const delta = parseInt(el.dataset.delta);
+      state.plankTimer.duration = Math.max(15, Math.min(120, state.plankTimer.duration + delta));
+      renderExerciseTimerArea();
+      break;
+    }
+
+    case 'prev-exercise':
+      if (state.currentExercise > 0) {
+        stopAllTimers();
+        state.currentExercise--;
+        render();
+      }
+      break;
+
+    case 'next-exercise':
+      stopAllTimers();
+      if (state.currentExercise < EXERCISES.length - 1) {
+        state.currentExercise++;
+        render();
+      } else {
+        state.screen = 'summary';
+        render();
+      }
+      break;
+
+    case 'save-session': {
+      const duration = state.sessionStartTime ? Math.floor((Date.now() - state.sessionStartTime) / 1000) : 0;
+      state.history.push({
+        date: new Date().toISOString(),
+        duration,
+        exercises: state.exercises.map(e => ({ ...e }))
+      });
+      saveHistory();
+      clearSession();
+      state.screen = 'home';
+      render();
+      break;
+    }
+
+    case 'discard-session':
+      clearSession();
+      state.screen = 'home';
+      render();
+      break;
+
+    case 'show-history':
+      state.screen = 'history';
+      render();
+      break;
+
+    case 'clear-history':
+      if (confirm('Gesamten Trainingsverlauf löschen?')) {
+        state.history = [];
+        saveHistory();
+        render();
+      }
+      break;
+  }
+}
+
+// Close modal on overlay click
+document.getElementById('redLinesModal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('redLinesModal')) {
+    document.getElementById('redLinesModal').classList.remove('open');
+  }
+});
+
+// Warmup timer
+function startWarmupTimer() {
+  stopWarmupTimer();
+  if (!state.warmup.startTime) state.warmup.startTime = Date.now();
+  warmupIntervalId = setInterval(() => {
+    const el = document.getElementById('warmup-timer');
+    if (!el) return;
+    const elapsed = Math.floor((Date.now() - state.warmup.startTime) / 1000);
+    const m = Math.floor(elapsed / 60);
+    const s = elapsed % 60;
+    el.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+  }, 500);
+}
+
+function stopWarmupTimer() {
+  if (warmupIntervalId) clearInterval(warmupIntervalId);
+  warmupIntervalId = null;
+}
+
+// Browser history integration
+window.addEventListener('popstate', () => {
+  if (state.screen === 'exercise') {
+    if (state.currentExercise > 0) {
+      stopAllTimers();
+      state.currentExercise--;
+      render();
+    } else {
+      state.screen = 'warmup';
+      render();
+    }
+  } else if (state.screen === 'warmup' || state.screen === 'history') {
+    state.screen = 'home';
+    stopWarmupTimer();
+    render();
+  }
+});
+
+// Push state on screen changes
+const originalRender = render;
+render = function() {
+  originalRender();
+  history.pushState({ screen: state.screen }, '');
+};
+
+// ============================================================
+// INIT
+// ============================================================
+loadHistory();
+const resumed = loadSession();
+if (resumed && state.screen === 'warmup') {
+  render();
+  startWarmupTimer();
+} else {
+  render();
+}
+</script>
+</body>
+</html>
